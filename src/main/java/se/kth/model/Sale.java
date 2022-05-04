@@ -4,6 +4,11 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import se.kth.DTOs.Amount;
+import se.kth.DTOs.DiscountInfoDTO;
+import se.kth.DTOs.InventoryItemDTO;
+import se.kth.DTOs.SaleDTO;
+
 /**
  * represents one sale of certain items made by one customer.
  */
@@ -20,7 +25,25 @@ public class Sale {
     public Sale() {
         this.itemsInSale = new ArrayList<>();
         this.saleTime = LocalTime.now();
-        this.runningTotal = new Amount(0, "kr");
+        this.runningTotal = new Amount(0);
+    }
+
+    /**
+     * getter for running total
+     * 
+     * @return The current running total for the sale
+     */
+    public Amount getRunningTotal() {
+        return this.runningTotal;
+    }
+
+    /**
+     * getter for saleTime
+     * 
+     * @return The start time for the sale
+     */
+    public LocalTime getSaleTime() {
+        return this.saleTime;
     }
 
     /**
@@ -32,13 +55,49 @@ public class Sale {
      */
     public Item searchForItemById(int itemID) {
         for (Item searchedItem : itemsInSale) {
-            if (searchedItem.getItemID() == itemID)
+            if (searchedItem.getItemDTO().getItemID() == itemID)
                 return searchedItem;
         }
         return null;
     }
 
-    public void addItemToSale(Item foundItem) {
-        itemsInSale.add(foundItem);
+    /**
+     * creates a new Item object in the sale.
+     * 
+     * @param itemToCreateDTO A DTO if the item to be created.
+     * @return The created Item
+     */
+    public Item createItemInSale(InventoryItemDTO itemToCreateDTO) {
+        Item itemToCreate = new Item(itemToCreateDTO);
+        itemsInSale.add(itemToCreate);
+        return itemToCreate;
+    }
+
+    /**
+     * updates the running total
+     * 
+     * @param itemToAdd The item which price to add
+     * @param quantity  How many of the items that are added
+     */
+    public void updateRunningTotal(Item itemToAdd, int quantity) {
+        Amount itemPriceWithVat = itemToAdd.calculatePriceForItemWithVat();
+        Amount newRunningTotal = new Amount(
+                this.runningTotal.getAmountValue() + (itemPriceWithVat.getAmountValue() * quantity));
+        this.runningTotal = newRunningTotal;
+    }
+
+    /**
+     * Method to generate a DTO of the complete sale
+     * 
+     * @return Created instance of saleDTO
+     */
+    public SaleDTO generateSaleDTO() {
+        List<InventoryItemDTO> saleItemDtoList = new ArrayList<>();
+        for (Item item : itemsInSale) {
+            InventoryItemDTO itemDtoToAdd = new InventoryItemDTO(item.getItemDTO(), item.getQuantity());
+            saleItemDtoList.add(itemDtoToAdd);
+        }
+        SaleDTO saleDtoToGenerate = new SaleDTO(this.saleTime, this.runningTotal, this.discountInfo, saleItemDtoList);
+        return saleDtoToGenerate;
     }
 }

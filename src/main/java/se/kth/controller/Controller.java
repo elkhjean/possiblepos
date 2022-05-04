@@ -1,12 +1,16 @@
 package se.kth.controller;
 
-import se.kth.DTOs.ItemDTO;
+import se.kth.DTOs.Amount;
+import se.kth.DTOs.InventoryItemDTO;
+import se.kth.DTOs.SaleDTO;
 import se.kth.integration.AccountingRegistry;
 import se.kth.integration.CashRegister;
 import se.kth.integration.DiscountRegistry;
 import se.kth.integration.InventoryRegistry;
 import se.kth.integration.Printer;
 import se.kth.model.Item;
+import se.kth.model.Payment;
+import se.kth.model.Reciept;
 import se.kth.model.Sale;
 
 /**
@@ -21,6 +25,7 @@ public class Controller {
     private CashRegister cashRegister;
     private Printer printer;
     private Sale currentSale;
+    private SaleDTO finishedSaleDTO;
 
     /**
      * This is the constructor for the controller. It creates a new instance of the
@@ -46,8 +51,17 @@ public class Controller {
      * 
      * @return An object of the class Sale
      */
-    public Object getCurrentSale() {
+    public Sale getCurrentSale() {
         return this.currentSale;
+    }
+
+    /**
+     * getter for the controllers cashRegister
+     * 
+     * @return An object of the class cashRegister
+     */
+    public CashRegister getCashRegister() {
+        return this.cashRegister;
     }
 
     /**
@@ -67,18 +81,43 @@ public class Controller {
      * @param quantity The quantity of the given item to be entered into sale.
      * @return The found item or a pointer to null if no item was found.
      */
-    public ItemDTO enterItemIntoSale(int itemID, int quantity) {
+    public InventoryItemDTO enterItemIntoSale(int itemID, int quantity) {
         Item foundItem = currentSale.searchForItemById(itemID);
         if (foundItem == null) {
-            ItemDTO foundItemDTO = inventoryRegistry.fetchItemFromInventory(itemID);
+            InventoryItemDTO foundItemDTO = inventoryRegistry.fetchItemFromInventory(itemID, quantity);
             if (foundItemDTO != null)
                 foundItem = currentSale.createItemInSale(foundItemDTO);
         }
         if (foundItem != null) {
             foundItem.updateQuantity(quantity);
             currentSale.updateRunningTotal(foundItem, quantity);
-            return foundItem.getItemDTO();
+            return foundItem.getItemDTOWithQuantity();
         }
         return null;
+    }
+
+    /**
+     * Calls on method in sale to generate a saleDTO and destroys the sale object.
+     * 
+     * @return An object of saleDTO
+     */
+    public SaleDTO endSale() {
+        this.finishedSaleDTO = this.currentSale.generateSaleDTO();
+        this.currentSale = null;
+        return this.finishedSaleDTO;
+    }
+
+    /**
+     * Method to handle payment
+     * 
+     * @param paidAmount The amount of money paid by customer
+     */
+    public void pay(Amount paidAmount) {
+        Payment payment = new Payment(paidAmount, finishedSaleDTO);
+        inventoryRegistry.updateInventory(finishedSaleDTO);
+        accountingRegistry.sendSaleInformation(finishedSaleDTO, payment);
+        cashRegister.updateBalance(payment);
+        Reciept reciept = new Reciept(finishedSaleDTO, payment);
+        printer.printReciept(reciept);
     }
 }

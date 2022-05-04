@@ -1,53 +1,41 @@
 package se.kth.model;
 
+import se.kth.DTOs.Amount;
+import se.kth.DTOs.InventoryItemDTO;
+
 /**
  * Represents an item fetched from the external inventory system.
  */
 public class Item {
-    private int itemID;
-    private String itemName;
-    private int itemVAT;
-    private Amount itemPrice;
+    private InventoryItemDTO itemDTO;
     private int itemQuantity;
-    private String itemDescription;
 
     /**
      * This is the onstructor for the Item class.
      * 
      * @param itemToCopy An object of the item to copy.
      */
-    public Item(Item itemToCopy) {
-        this.itemID = itemToCopy.itemID;
-        this.itemName = itemToCopy.itemName;
-        this.itemVAT = itemToCopy.itemVAT;
-        this.itemPrice = itemToCopy.itemPrice;
-        this.itemDescription = itemToCopy.itemDescription;
+    public Item(InventoryItemDTO itemToCopy) {
+        this.itemDTO = itemToCopy;
+
     }
 
     /**
-     * This is the onstructor for the Item class.
+     * Getter for item's DTO
      * 
-     * @param itemID         The items unique identifier as an int
-     * @param itemName       The name of the item as a string
-     * @param itemVAT        The items VAT rate as an int
-     * @param itemPrice      The price of the item as an object of Amount class
-     * @param itemDesription The description of the Item as a string
+     * @return an instance of itemDTO
      */
-    public Item(int itemID, String itemName, int itemVAT, Amount itemPrice, String itemDesription) {
-        this.itemID = itemID;
-        this.itemName = itemName;
-        this.itemVAT = itemVAT;
-        this.itemPrice = itemPrice;
-        this.itemDescription = itemDesription;
+    public InventoryItemDTO getItemDTO() {
+        return this.itemDTO;
     }
 
     /**
-     * Getter for itemID.
+     * getter for item's quantity
      * 
-     * @return The Item ID.
+     * @return quantity of the item
      */
-    public int getItemID() {
-        return this.itemID;
+    public int getQuantity() {
+        return this.itemQuantity;
     }
 
     /**
@@ -60,17 +48,24 @@ public class Item {
     }
 
     /**
-     * This is the toString method for the Item class. It overrides the standard
-     * toString method.
+     * Method to calculate price of one item with VAT
      * 
-     * @return A string with information about the item.
+     * @return A isntance of Amount representing the items price after VAT
      */
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(itemName + "\n");
-        sb.append(itemPrice.toString() + "\n");
-        sb.append(itemDescription);
-        return sb.toString();
+    public Amount calculatePriceForItemWithVat() {
+        Amount itemPrice = this.itemDTO.getItemPrice();
+        Amount priceWithVAT = new Amount(
+                itemPrice.getAmountValue() + (itemPrice.getAmountValue() * this.itemDTO.getItemVAT() / 100));
+        return priceWithVAT;
+    }
+
+    /**
+     * Method to retrieve an itemDTO that also contains items quantity
+     * 
+     * @return An instance of InventoryItemDTO
+     */
+    public InventoryItemDTO getItemDTOWithQuantity() {
+        InventoryItemDTO dtoWithQuantity = new InventoryItemDTO(this.itemDTO, this.itemQuantity);
+        return dtoWithQuantity;
     }
 }

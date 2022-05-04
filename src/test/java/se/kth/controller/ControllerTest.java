@@ -4,38 +4,45 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import se.kth.DTOs.Amount;
+import se.kth.DTOs.InventoryItemDTO;
 import se.kth.integration.AccountingRegistry;
 import se.kth.integration.DiscountRegistry;
 import se.kth.integration.InventoryRegistry;
-import se.kth.model.Amount;
 import se.kth.model.Item;
 import se.kth.model.Sale;
 
 public class ControllerTest {
+    private InventoryRegistry invReg;
+    private AccountingRegistry acoReg;
+    private DiscountRegistry disReg;
     private Controller instanceToTest;
+    private Amount paidAmount;
 
     @BeforeEach
     public void setUp() {
-        InventoryRegistry invReg = new InventoryRegistry();
-
-        Amount tomatoPrice = new Amount(8, "kr");
-        Item tomatoItem = new Item(100, "Tomato", 12, tomatoPrice, "red tomato from italy");
-        invReg.addItemToInventory(tomatoItem);
-
-        Amount lettucePrice = new Amount(20, "kr");
-        Item lettuceItem = new Item(200, "Lettuce", 12, lettucePrice, "fresh lettuce from local greenhouse");
-        invReg.addItemToInventory(lettuceItem);
-
-        AccountingRegistry acoReg = new AccountingRegistry();
-        DiscountRegistry disReg = new DiscountRegistry();
+        invReg = new InventoryRegistry();
+        acoReg = new AccountingRegistry();
+        disReg = new DiscountRegistry();
         instanceToTest = new Controller(invReg, disReg, acoReg);
-        Sale currentSale = instanceToTest.startSale();
-        currentSale.addItemToSale(lettuceItem);
+        instanceToTest.startSale();
+        instanceToTest.enterItemIntoSale(200, 2);
+        paidAmount = new Amount(50);
     }
 
     @AfterEach
     public void tearDown() {
+        invReg = null;
+        acoReg = null;
+        disReg = null;
         instanceToTest = null;
+        paidAmount = null;
+    }
+
+    @Test
+    public void testControllerConstructor(){
+        assertTrue(instanceToTest != null, "failed to construct controller");
     }
 
     @Test
@@ -45,22 +52,34 @@ public class ControllerTest {
 
     @Test
     public void testEnterItemIntoSaleItemDoesNotExist() {
-        String returnedItemString = instanceToTest.enterItemIntoSale(300, 1);
-        String expectedOutPut = "invalid item ID";
-        assertTrue(returnedItemString.contains(expectedOutPut), "returning null item failed");
+        InventoryItemDTO returnedItemDTO = instanceToTest.enterItemIntoSale(42, 20);
+        assertTrue(returnedItemDTO == null, "Failed to detect non existant item");
     }
 
     @Test
     public void testEnterItemIntoSaleItemAlreadyInSale() {
-        String returnedItemString = instanceToTest.enterItemIntoSale(200, 1);
-        String expectedOutPut = "Lettuce";
-        assertTrue(returnedItemString.contains(expectedOutPut), "adding item that already is in sale again failed");
+        InventoryItemDTO returnedItemDTO = instanceToTest.enterItemIntoSale(200, 1);
+        assertTrue(returnedItemDTO.getQuantity() == 3, "Failed to add item that already exists in sale to sale");
     }
 
     @Test
     public void testEnterItemIntoSaleItemExistsInInventory() {
-        String returnedItemString = instanceToTest.enterItemIntoSale(100, 1);
-        String expectedOutPut = "Tomato";
-        assertTrue(returnedItemString.contains(expectedOutPut), "adding item from inventory failed");
+        InventoryItemDTO returnedItemDTO = instanceToTest.enterItemIntoSale(100, 1);
+        assertTrue(returnedItemDTO != null, "adding item from inventory failed");
+    }
+
+    @Test
+    public void testEndSale(){
+        instanceToTest.endSale();
+        assertTrue(instanceToTest.getCurrentSale() == null, "Failed to end sale");
+    }
+
+    @Test
+    public void testPay(){
+        Amount balanceBeforePayment = instanceToTest.getCashRegister().getBalance();
+        instanceToTest.endSale();
+        instanceToTest.pay(paidAmount);
+        Amount balanceAfterPayment = instanceToTest.getCashRegister().getBalance();
+        assertTrue(balanceAfterPayment.getAmountValue() != balanceBeforePayment.getAmountValue(), "payment failed");
     }
 }

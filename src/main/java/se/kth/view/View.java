@@ -1,5 +1,8 @@
 package se.kth.view;
 
+import se.kth.DTOs.Amount;
+import se.kth.DTOs.InventoryItemDTO;
+import se.kth.DTOs.SaleDTO;
 import se.kth.controller.Controller;
 
 /**
@@ -8,7 +11,8 @@ import se.kth.controller.Controller;
  */
 public class View {
     private Controller controller;
-    private String itemInfoToDisplay;
+    private InventoryItemDTO itemInfoToDisplay;
+    private SaleDTO saleInfoToDisplay;
 
     public View(Controller controller) {
         this.controller = controller;
@@ -17,14 +21,19 @@ public class View {
     public void runFakeExe(){
         controller.startSale();
         System.out.println("New sale started");
-        itemInfoToDisplay = controller.enterItemIntoSale(552, 3);
+        itemInfoToDisplay = controller.enterItemIntoSale(100, 3);
         System.out.println(itemInfoToDisplay);
-        itemInfoToDisplay = controller.enterItemIntoSale(514, 1);
+        itemInfoToDisplay = controller.enterItemIntoSale(200, 1);
         System.out.println(itemInfoToDisplay);
-        itemInfoToDisplay = controller.enterItemIntoSale(897, 5);
+        itemInfoToDisplay = controller.enterItemIntoSale(300, 5);
         System.out.println(itemInfoToDisplay);
-        itemInfoToDisplay = controller.enterItemIntoSale(514, 2);
+        itemInfoToDisplay = controller.enterItemIntoSale(100, 2);
         System.out.println(itemInfoToDisplay);
+        saleInfoToDisplay = controller.endSale();
+        System.out.println(saleInfoToDisplay);
+        Amount paidAmount = new Amount(0);
+        controller.pay(paidAmount);
+        System.out.println("sale confirmed paid");
     }
     
 }
