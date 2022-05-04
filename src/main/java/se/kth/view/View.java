@@ -22,18 +22,38 @@ public class View {
         controller.startSale();
         System.out.println("New sale started");
         itemInfoToDisplay = controller.enterItemIntoSale(100, 3);
-        System.out.println(itemInfoToDisplay);
+        System.out.println(showItemInfoInView(itemInfoToDisplay));
         itemInfoToDisplay = controller.enterItemIntoSale(200, 1);
-        System.out.println(itemInfoToDisplay);
+        System.out.println(showItemInfoInView(itemInfoToDisplay));
         itemInfoToDisplay = controller.enterItemIntoSale(300, 5);
-        System.out.println(itemInfoToDisplay);
+        System.out.println(showItemInfoInView(itemInfoToDisplay));
         itemInfoToDisplay = controller.enterItemIntoSale(100, 2);
-        System.out.println(itemInfoToDisplay);
+        System.out.println(showItemInfoInView(itemInfoToDisplay));
         saleInfoToDisplay = controller.endSale();
-        System.out.println(saleInfoToDisplay);
+        System.out.println(showCompletedSaleInView(saleInfoToDisplay));
         Amount paidAmount = new Amount(0);
         controller.pay(paidAmount);
         System.out.println("sale confirmed paid");
     }
     
+    public String showItemInfoInView(InventoryItemDTO objToPrint){
+        if(objToPrint == null)
+            return("Invalid item ID \n");
+        StringBuilder sb = new StringBuilder();
+        sb.append(objToPrint.getQuantity() + "      ");
+        sb.append(objToPrint.getItemName() + " : ");
+        sb.append(objToPrint.getItemDescription() + "       ");
+        sb.append(objToPrint.getItemPrice().getAmountValue() + objToPrint.getItemPrice().getCurrency() + "\n");
+        return sb.toString();
+    }
+
+    public String showCompletedSaleInView(SaleDTO saleInfoToBeDisplayed){
+        StringBuilder sb = new StringBuilder();
+        sb.append("Time of sale: " + saleInfoToBeDisplayed.getSaleTime() + "\n");
+        for (InventoryItemDTO inventoryItemDTO : saleInfoToBeDisplayed.getItemsInSale()) {
+            sb.append(showItemInfoInView(inventoryItemDTO));
+        }
+        sb.append("Total:" + saleInfoToBeDisplayed.getRunningTotal().getAmountValue() + "\n");
+        return sb.toString();
+    }
 }

@@ -4,5 +4,6 @@ package se.kth.integration;
  * is passed through objects of this class.
  */
 public class DiscountRegistry {
-    
+    //Placeholder
+    //Not implemented
 }

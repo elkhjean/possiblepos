@@ -16,24 +16,19 @@ public class Amount {
         this.amount = amount;
         this.currency = "kr";
     }
-    /**
-     * This is the toString method for the amount class. It overrides the standard
-     * toString method.
-     * 
-     * @return A string with information about the amount.
-     */
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(amount);
-        sb.append(currency);
-        return sb.toString();
-    }
 
+    /**
+     * getter for currency
+     * @return The cureency of the amount
+     */
     public String getCurrency() {
         return this.currency;
     }
 
+    /**
+     * getter for amount
+     * @return the amount value
+     */
     public float getAmountValue() {
         return this.amount;
     }

@@ -3,6 +3,9 @@ package se.kth.DTOs;
 import java.time.LocalTime;
 import java.util.List;
 
+/**
+ * This is the SaleDTO class, it holds all available information about a sale
+ */
 public class SaleDTO {
     private LocalTime saleTime;
     private List<InventoryItemDTO> itemsInSale;
@@ -25,6 +28,9 @@ public class SaleDTO {
         this.discountInfo = discountInfo;
     }
 
+    /**
+     * Getters
+     */
     public LocalTime getSaleTime() {
         return saleTime;
     }
@@ -39,16 +45,5 @@ public class SaleDTO {
 
     public DiscountInfoDTO getDiscountInfo() {
         return discountInfo;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Time of sale: " + this.saleTime + "\n");
-        for (InventoryItemDTO inventoryItemDTO : itemsInSale) {
-            sb.append(inventoryItemDTO.toString());
-        }
-        sb.append("Total:" + runningTotal + "\n");
-        return sb.toString();
     }
 }
