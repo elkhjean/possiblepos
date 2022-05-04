@@ -1,5 +1,6 @@
 package se.kth.controller;
 
+import se.kth.DTOs.ItemDTO;
 import se.kth.integration.AccountingRegistry;
 import se.kth.integration.CashRegister;
 import se.kth.integration.DiscountRegistry;
@@ -40,9 +41,22 @@ public class Controller {
         this.printer = new Printer();
     }
 
-    public Sale startSale() {
+    /**
+     * Getter for the cotrollers current sale
+     * 
+     * @return An object of the class Sale
+     */
+    public Object getCurrentSale() {
+        return this.currentSale;
+    }
+
+    /**
+     * Method to create a new sale
+     * 
+     * @return an object currentSale of the Sale class
+     */
+    public void startSale() {
         currentSale = new Sale();
-        return currentSale;
     }
 
     /**
@@ -53,26 +67,18 @@ public class Controller {
      * @param quantity The quantity of the given item to be entered into sale.
      * @return The found item or a pointer to null if no item was found.
      */
-    public String enterItemIntoSale(int itemID, int quantity) {
+    public ItemDTO enterItemIntoSale(int itemID, int quantity) {
         Item foundItem = currentSale.searchForItemById(itemID);
         if (foundItem == null) {
-            foundItem = inventoryRegistry.fetchItemFromInventory(itemID);
-            if (foundItem != null)
-                currentSale.addItemToSale(foundItem);
+            ItemDTO foundItemDTO = inventoryRegistry.fetchItemFromInventory(itemID);
+            if (foundItemDTO != null)
+                foundItem = currentSale.createItemInSale(foundItemDTO);
         }
         if (foundItem != null) {
             foundItem.updateQuantity(quantity);
-            return foundItem.toString();
+            currentSale.updateRunningTotal(foundItem, quantity);
+            return foundItem.getItemDTO();
         }
-        return "invalid item ID";
-    }
-
-    /**
-     * Getter for the cotrollers current sale
-     * 
-     * @return An object of the class Sale
-     */
-    public Object getCurrentSale() {
-        return this.currentSale;
+        return null;
     }
 }
