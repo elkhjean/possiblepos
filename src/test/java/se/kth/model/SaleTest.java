@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import se.kth.DTOs.Amount;
 import se.kth.DTOs.InventoryItemDTO;
 import se.kth.DTOs.SaleDTO;
-import sun.security.jca.GetInstance.Instance;
 
 public class SaleTest {
     private Sale instanceToTest;

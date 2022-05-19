@@ -1,5 +1,8 @@
 package se.kth.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.kth.DTOs.Amount;
 import se.kth.DTOs.SaleDTO;
 
@@ -8,20 +11,34 @@ import se.kth.DTOs.SaleDTO;
  * one sale.
  */
 public class Payment {
+    private Amount priceToBePaid;
     private Amount paidAmount;
     private Amount change;
+    private List<PaymentObserver> paymentObservers = new ArrayList<>();
 
     /**
      * Constructor for Payment class
      * 
-     * @param paidAmount      An object of Amount class containing information about
-     *                        the amount of money paid by customer
-     * @param finishedSaleDTO A DTO containing information about the sale
+     * @param paidAmount       An object of Amount class containing information
+     *                         about
+     *                         the amount of money paid by customer
+     * @param finishedSaleDTO  A DTO containing information about the sale
+     * 
+     * @param paymentObservers a list of objects that implements the PaymentObserver
+     *                         interface
      */
-    public Payment(Amount paidAmount, SaleDTO finishedSaleDTO) {
+    public Payment(Amount paidAmount, SaleDTO finishedSaleDTO, List<PaymentObserver> paymentObservers) {
         this.paidAmount = paidAmount;
-        Amount change = new Amount(paidAmount.getAmountValue() - finishedSaleDTO.getRunningTotal().getAmountValue());
-        this.change = change;
+        this.priceToBePaid = finishedSaleDTO.getRunningTotal();
+        this.change = new Amount(paidAmount.minus(priceToBePaid));
+        this.paymentObservers = paymentObservers;
+        notifyObservers();
+    }
+
+    private void notifyObservers() {
+        for (PaymentObserver paymentObserver : paymentObservers) {
+            paymentObserver.newPaymentMade(this.priceToBePaid);
+        }
     }
 
     /**
@@ -35,5 +52,9 @@ public class Payment {
 
     public Amount getChange() {
         return change;
+    }
+
+    public Amount getPriceToBePaid() {
+        return priceToBePaid;
     }
 }

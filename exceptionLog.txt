@@ -1,0 +1,7 @@
+Exception was thrown at: 2022-05-19T19:15:52.539342400
+se.kth.integration.DatabaseFailureException: Unable to call inventory system
+	at se.kth.integration.InventoryRegistry.fetchItemFromInventory(InventoryRegistry.java:46)
+	at se.kth.controller.Controller.enterItemIntoSale(Controller.java:91)
+	at se.kth.view.View.enterItemIntoSale(View.java:52)
+	at se.kth.view.View.runFakeExe(View.java:35)
+	at se.kth.startup.Main.main(Main.java:23)

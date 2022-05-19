@@ -4,41 +4,66 @@ import se.kth.DTOs.Amount;
 import se.kth.DTOs.InventoryItemDTO;
 import se.kth.DTOs.SaleDTO;
 import se.kth.controller.Controller;
+import se.kth.controller.OperationFailureException;
+import se.kth.integration.NoMatchingItemIdException;
 
 /**
- * This is a placeholder for the real view. It contains hardcoded execution calls to system
+ * This is a placeholder for the real view. It contains hardcoded execution
+ * calls to system
  * operations in the controller.
  */
 public class View {
     private Controller controller;
-    private InventoryItemDTO itemInfoToDisplay;
-    private SaleDTO saleInfoToDisplay;
 
     public View(Controller controller) {
         this.controller = controller;
+        this.controller.addPaymentObserver(new TotalRevenueView());
+        this.controller.addPaymentObserver(new TotalRevenueFileOutput());
     }
 
-    public void runFakeExe(){
+    /**
+     * A simulation of a user interaction with the view.
+     */
+    public void runFakeExe() {
         controller.startSale();
         System.out.println("New sale started");
-        itemInfoToDisplay = controller.enterItemIntoSale(100, 3);
-        System.out.println(showItemInfoInView(itemInfoToDisplay));
-        itemInfoToDisplay = controller.enterItemIntoSale(200, 1);
-        System.out.println(showItemInfoInView(itemInfoToDisplay));
-        itemInfoToDisplay = controller.enterItemIntoSale(300, 5);
-        System.out.println(showItemInfoInView(itemInfoToDisplay));
-        itemInfoToDisplay = controller.enterItemIntoSale(100, 2);
-        System.out.println(showItemInfoInView(itemInfoToDisplay));
-        saleInfoToDisplay = controller.endSale();
-        System.out.println(showCompletedSaleInView(saleInfoToDisplay));
-        Amount paidAmount = new Amount(0);
-        controller.pay(paidAmount);
+
+        enterItemIntoSale(100, 5);
+        enterItemIntoSale(200, 1);
+        enterItemIntoSale(300, 2);
+        enterItemIntoSale(100, 3);
+        enterItemIntoSale(401, 1);
+        enterItemIntoSale(200, 1);
+
+        System.out.println(showCompletedSaleInView(controller.endSale()));
+
+        controller.pay(new Amount(100));
         System.out.println("sale confirmed paid");
     }
-    
-    public String showItemInfoInView(InventoryItemDTO objToPrint){
-        if(objToPrint == null)
-            return("Invalid item ID \n");
+
+    /**
+     * Calls method in controller to enter an item into sale if itemID exists.
+     * 
+     * @param itemID   the itemID of the item to be entered into the sale.
+     * @param quantity the quantity of the item to be entered into the sale.
+     */
+    private void enterItemIntoSale(int itemID, int quantity) {
+        try {
+            System.out.println(showItemInfoInView(controller.enterItemIntoSale(itemID, quantity)));
+        } catch (NoMatchingItemIdException noMatchingIdFoundException) {
+            System.out.println(noMatchingIdFoundException.getMessage() + "\n");
+        } catch (OperationFailureException operationFailedException) {
+            System.out.println(operationFailedException.getMessage());
+        }
+    }
+
+    /**
+     * Formats a string containing information of the item.
+     * 
+     * @param objToPrint the item to be printed.
+     * @return A formatted string.
+     */
+    private String showItemInfoInView(InventoryItemDTO objToPrint) {
         StringBuilder sb = new StringBuilder();
         sb.append(objToPrint.getQuantity() + "      ");
         sb.append(objToPrint.getItemName() + " : ");
@@ -47,7 +72,13 @@ public class View {
         return sb.toString();
     }
 
-    public String showCompletedSaleInView(SaleDTO saleInfoToBeDisplayed){
+    /**
+     * Formats a string containing information of a sale.
+     * 
+     * @param saleInfoToBeDisplayed the sale to be displayed in the view.
+     * @return A formatted string.
+     */
+    private String showCompletedSaleInView(SaleDTO saleInfoToBeDisplayed) {
         StringBuilder sb = new StringBuilder();
         sb.append("Time of sale: " + saleInfoToBeDisplayed.getSaleTime() + "\n");
         for (InventoryItemDTO inventoryItemDTO : saleInfoToBeDisplayed.getItemsInSale()) {

@@ -1,17 +1,12 @@
 package se.kth.controller;
 
-import se.kth.DTOs.Amount;
-import se.kth.DTOs.InventoryItemDTO;
-import se.kth.DTOs.SaleDTO;
-import se.kth.integration.AccountingRegistry;
-import se.kth.integration.CashRegister;
-import se.kth.integration.DiscountRegistry;
-import se.kth.integration.InventoryRegistry;
-import se.kth.integration.Printer;
-import se.kth.model.Item;
-import se.kth.model.Payment;
-import se.kth.model.Reciept;
-import se.kth.model.Sale;
+import java.util.ArrayList;
+import java.util.List;
+
+import se.kth.DTOs.*;
+import se.kth.integration.*;
+import se.kth.model.*;
+import se.kth.utility.ExceptionLogHandler;
 
 /**
  * This is the application's controller. All calls to the model layer pass
@@ -26,6 +21,8 @@ public class Controller {
     private Printer printer;
     private Sale currentSale;
     private SaleDTO finishedSaleDTO;
+    private List<PaymentObserver> paymentObservers = new ArrayList<>();
+    private ExceptionLogHandler exceptionLogger;
 
     /**
      * This is the constructor for the controller. It creates a new instance of the
@@ -44,6 +41,7 @@ public class Controller {
         this.inventoryRegistry = invReg;
         this.cashRegister = new CashRegister();
         this.printer = new Printer();
+        this.exceptionLogger = new ExceptionLogHandler();
     }
 
     /**
@@ -80,20 +78,26 @@ public class Controller {
      *                 inventory system.
      * @param quantity The quantity of the given item to be entered into sale.
      * @return The found item or a pointer to null if no item was found.
+     * @throws NoMatchingItemIdException if there is no match in the inventory
+     *                                   system for the specified itemID.
+     * @throws OperationFailureException if a DatabaseFailureException is caught
+     *                                   returning from call to inventoryRegistry
      */
-    public InventoryItemDTO enterItemIntoSale(int itemID, int quantity) {
-        Item foundItem = currentSale.searchForItemById(itemID);
-        if (foundItem == null) {
-            InventoryItemDTO foundItemDTO = inventoryRegistry.fetchItemFromInventory(itemID, quantity);
-            if (foundItemDTO != null)
+    public InventoryItemDTO enterItemIntoSale(int itemID, int quantity)
+            throws NoMatchingItemIdException, OperationFailureException {
+        try {
+            Item foundItem = currentSale.searchForItemById(itemID);
+            if (foundItem == null) {
+                InventoryItemDTO foundItemDTO = inventoryRegistry.fetchItemFromInventory(itemID, quantity);
                 foundItem = currentSale.createItemInSale(foundItemDTO);
-        }
-        if (foundItem != null) {
+            }
             foundItem.updateQuantity(quantity);
             currentSale.updateRunningTotal(foundItem, quantity);
             return foundItem.getItemDTOWithQuantity();
+        } catch (DatabaseFailureException dbFailException) {
+            exceptionLogger.logException(dbFailException);
+            throw new OperationFailureException("Could not add item to sale\n", dbFailException);
         }
-        return null;
     }
 
     /**
@@ -113,11 +117,20 @@ public class Controller {
      * @param paidAmount The amount of money paid by customer
      */
     public void pay(Amount paidAmount) {
-        Payment payment = new Payment(paidAmount, finishedSaleDTO);
-        inventoryRegistry.updateInventory(finishedSaleDTO);
-        accountingRegistry.sendSaleInformation(finishedSaleDTO, payment);
+        Payment payment = new Payment(paidAmount, this.finishedSaleDTO, this.paymentObservers);
+        inventoryRegistry.updateInventory(this.finishedSaleDTO);
+        accountingRegistry.sendSaleInformation(this.finishedSaleDTO, payment);
         cashRegister.updateBalance(payment);
-        Reciept reciept = new Reciept(finishedSaleDTO, payment);
+        Reciept reciept = new Reciept(this.finishedSaleDTO, payment);
         printer.printReciept(reciept);
+    }
+
+    /**
+     * Method to add a paymentObserver to the controllers list of PayMentObservers'
+     * 
+     * @param observer an object of class which implements onterface PaymentObserver
+     */
+    public void addPaymentObserver(PaymentObserver observer) {
+        this.paymentObservers.add(observer);
     }
 }

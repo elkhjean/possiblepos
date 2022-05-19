@@ -16,8 +16,8 @@ public class SaleDTO {
      * constructor for SaleDTO
      * 
      * @param saleTime        The time of the sale start
-     * @param runningTotal2   List with DTO of items
-     * @param discountInfo2   The final running total
+     * @param runningTotal    List with DTO of items
+     * @param discountInfo    The final running total
      * @param saleItemDtoList Discount information
      */
     public SaleDTO(LocalTime saleTime, Amount runningTotal, DiscountInfoDTO discountInfo,

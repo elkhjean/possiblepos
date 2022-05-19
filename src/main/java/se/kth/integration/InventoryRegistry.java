@@ -16,15 +16,18 @@ public class InventoryRegistry {
     private List<InventoryItemDTO> itemInventoryList;
 
     /**
-     * The inventoryRegistry constructor
+     * The inventoryRegistry constructor, creates placeholder items to simulate the
+     * existance of items in an external inventory system
      */
     public InventoryRegistry() {
         itemInventoryList = new ArrayList<>();
         Amount tomatoPrice = new Amount(6);
-        InventoryItemDTO tomatoItemDTO = new InventoryItemDTO(100, "tomato", 12, tomatoPrice, "sun ripened italian tomato");
+        InventoryItemDTO tomatoItemDTO = new InventoryItemDTO(100, "tomato", 12, tomatoPrice,
+                "sun ripened italian tomato");
         itemInventoryList.add(tomatoItemDTO);
         Amount lettucePrice = new Amount(20);
-        InventoryItemDTO lettuceItemDTO  = new InventoryItemDTO(200, "lettuce", 12, lettucePrice, "spanish A-class lettuce");
+        InventoryItemDTO lettuceItemDTO = new InventoryItemDTO(200, "lettuce", 12, lettucePrice,
+                "spanish A-class lettuce");
         itemInventoryList.add(lettuceItemDTO);
     }
 
@@ -34,24 +37,29 @@ public class InventoryRegistry {
      * 
      * @param itemID unique item identifier for searched item.
      * @return The created itemDTO if match is found or null if no match was found.
+     * @throws NoMatchingItemException if there is no match in the inventory system
+     *                                 for the specified itemID.
      */
-    public InventoryItemDTO fetchItemFromInventory(int itemID, int quantity) {
-        for (InventoryItemDTO itemToBeFetched : itemInventoryList) {
-            if (itemToBeFetched.getItemID() == itemID) {
-                InventoryItemDTO foundItemDTO = new InventoryItemDTO(itemToBeFetched, quantity);
-                return foundItemDTO;
-            }
+    public InventoryItemDTO fetchItemFromInventory(int itemID, int quantity)
+            throws NoMatchingItemIdException, DatabaseFailureException {
+        if (itemID == 401)
+            throw new DatabaseFailureException("Unable to call inventory system");
+        for (InventoryItemDTO itemToCheck : itemInventoryList) {
+            if (itemToCheck.getItemID() == itemID)
+                return new InventoryItemDTO(itemToCheck, quantity);
         }
-        return null;
+        throw new NoMatchingItemIdException(itemID);
     }
 
     /**
      * Method to update inventory status in inventory database
+     * 
      * @param finishedSaleDTO A DTO of the finished sale containing all items
      */
     public void updateInventory(SaleDTO finishedSaleDTO) {
-        //placeholder
+        // placeholder
         List<InventoryItemDTO> itemsToUpdateInInventory = finishedSaleDTO.getItemsInSale();
-        //Extracts the list of items sold and calls methods inside database to update inventory status.
+        // Extracts the list of items sold and calls methods inside database to update
+        // inventory status.
     }
 }
