@@ -39,6 +39,21 @@ public class View {
 
         controller.pay(new Amount(100));
         System.out.println("sale confirmed paid");
+
+        controller.startSale();
+        System.out.println("New sale started");
+
+        enterItemIntoSale(200, 5);
+        enterItemIntoSale(100, 1);
+        enterItemIntoSale(100, 2);
+        enterItemIntoSale(300, 3);
+        enterItemIntoSale(401, 1);
+        enterItemIntoSale(200, 1);
+
+        System.out.println(showCompletedSaleInView(controller.endSale()));
+
+        controller.pay(new Amount(1000));
+        System.out.println("sale confirmed paid");
     }
 
     /**

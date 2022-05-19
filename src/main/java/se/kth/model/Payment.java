@@ -37,7 +37,7 @@ public class Payment {
 
     private void notifyObservers() {
         for (PaymentObserver paymentObserver : paymentObservers) {
-            paymentObserver.newPaymentMade(this.priceToBePaid);
+            paymentObserver.newPaymentMade(this.getPriceToBePaid());
         }
     }
 
